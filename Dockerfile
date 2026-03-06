@@ -1,20 +1,18 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 WORKDIR /var/www/html
 
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip
+    git unzip libzip-dev libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql zip
 
 COPY . .
 
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN composer install --no-dev --optimize-autoloader
 
-RUN php artisan migrate --force
-RUN php artisan db:seed --force
-EXPOSE 10000
+RUN php artisan key:generate
+RUN php artisan migrate --seed --force
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+CMD php artisan serve --host=0.0.0.0 --port=10000
