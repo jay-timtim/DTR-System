@@ -198,7 +198,7 @@
     <a href="/manage-employees">Manage Employees</a>
     <a href="/view-dtr">View DTR Records</a>
     <a href="/reports">Reports</a>
-    <a href="/">Logout</a>
+    <a href="logout">Logout</a>
 </div>
 
 <!-- Main Content -->

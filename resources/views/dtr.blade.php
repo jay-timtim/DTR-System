@@ -163,7 +163,7 @@
     </form>
 
     <div class="admin-link">
-        <a href="/admin">Administrator Login</a>
+        <a href="/admin/login">Administrator Login</a>
     </div>
 
     <!-- 🔥 Live Running Clock -->
