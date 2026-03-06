@@ -209,26 +209,47 @@
     <!-- Filter Panel -->
 
     <div class="filter-panel">
-        <h3>Filter Attendance Records</h3>
 
-        <div class="filter-group">
+        <h3>Attendance Records Filter</h3>
 
-            <select>
-                <option>Select Employee</option>
-                <option>EMP001 - Juan Dela Cruz</option>
-                <option>EMP002 - Maria Santos</option>
-            </select>
+        <form method="GET" action="/view-dtr">
 
-            <input type="date">
-            <input type="date">
+            <div class="filter-group">
 
-            <button class="btn-filter">Apply Filter</button>
+                <select name="employee_id">
 
-        </div>
+                    <option value="">All Employees</option>
+
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->employee_id }}">
+                            {{ $emp->employee_id }}
+                            -
+                            {{ $emp->first_name }}
+                            {{ $emp->last_name }}
+                        </option>
+                    @endforeach
+
+                </select>
+
+                <input type="date" name="start_date">
+                <input type="date" name="end_date">
+
+                <button class="btn-filter" type="submit">
+                    Apply Filter
+                </button>
+
+            </div>
+
+        </form>
 
         <div class="export-group">
-            <button class="btn-export btn-excel">Export Excel</button>
-            <button class="btn-export btn-pdf">Export PDF</button>
+            <button class="btn-export btn-excel">
+                Export Excel
+            </button>
+
+            <button class="btn-export btn-pdf">
+                Export PDF
+            </button>
         </div>
 
     </div>
@@ -252,28 +273,80 @@
 
             <tbody>
 
-            <tr>
-                <td>EMP001</td>
-                <td>Juan Dela Cruz</td>
-                <td>Feb 24, 2026</td>
-                <td>08:01 AM</td>
-                <td>05:02 PM</td>
-                <td class="status-present">Present</td>
-            </tr>
+            @if($records->isEmpty())
 
-            <tr>
-                <td>EMP002</td>
-                <td>Maria Santos</td>
-                <td>Feb 24, 2026</td>
-                <td>08:15 AM</td>
-                <td>—</td>
-                <td class="status-late">Late</td>
-            </tr>
+                <tr>
+                    <td colspan="6" style="text-align:center;color:#777;padding:30px;">
+                        No attendance records found
+                    </td>
+                </tr>
+
+            @else
+
+                @foreach($records as $record)
+
+                    <tr>
+
+                        <td>{{ $record->employee_id }}</td>
+
+                        <td>{{ $record->first_name }} {{ $record->last_name }}</td>
+
+                        <td>
+                            {{ \Carbon\Carbon::parse($record->log_time)->format('M d, Y') }}
+                        </td>
+
+                        <td>
+                            {{ \Carbon\Carbon::parse($record->log_time)->format('h:i A') }}
+                        </td>
+
+                        <td>
+                            {{ $record->log_type == 'TIME_OUT'
+                            ? \Carbon\Carbon::parse($record->log_time)->format('h:i A')
+                            : '—' }}
+                        </td>
+
+                        <td>
+
+                            @php
+                                $status = '';
+
+                                if($record->log_type == 'TIME_IN'){
+                                    $status = 'Present';
+                                }
+                                elseif($record->log_type == 'BREAK_OUT'){
+                                    $status = 'On Break';
+                                }
+                                elseif($record->log_type == 'BREAK_IN'){
+                                    $status = 'Returned';
+                                }
+                                elseif($record->log_type == 'TIME_OUT'){
+                                    $status = 'Completed';
+                                }
+                            @endphp
+
+                            <span class="
+{{ $status == 'Present' ? 'status-present' :
+($status == 'On Break' ? 'status-late' : 'status-absent') }}
+">
+
+{{ $status }}
+
+</span>
+
+                        </td>
+
+                    </tr>
+
+                @endforeach
+
+            @endif
 
             </tbody>
 
         </table>
-
+        <div style="margin-top:15px;">
+            {{ $records->links() }}
+        </div>
     </div>
 
 </div>

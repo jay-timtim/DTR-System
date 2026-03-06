@@ -215,17 +215,19 @@
 
         <div class="card">
             <h3>Total Attendance Records</h3>
-            <p>1,245</p>
+            <p>{{ $totalAttendance }}</p>
         </div>
 
         <div class="card">
             <h3>Most Present Employee</h3>
-            <p>Juan Dela Cruz</p>
+            <p>
+                {{ $mostPresentName ?? 'N/A' }}
+            </p>
         </div>
 
         <div class="card">
-            <h3>Total Late Today</h3>
-            <p>8</p>
+            <h3>Late Today</h3>
+            <p>{{ $lateToday }}</p>
         </div>
 
     </div>
@@ -236,26 +238,35 @@
 
         <h3>Generate Attendance Report</h3>
 
-        <div class="filter-group">
+        <form method="GET" action="/reports">
 
-            <select>
-                <option>Select Employee</option>
-                <option>All Employees</option>
-                <option>EMP001 - Juan Dela Cruz</option>
-                <option>EMP002 - Maria Santos</option>
-            </select>
+            <div class="filter-group">
 
-            <input type="date">
-            <input type="date">
+                <select name="employee_id">
 
-            <button class="btn-generate">Generate Report</button>
+                    <option value="">All Employees</option>
 
-        </div>
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->employee_id }}">
+                            {{ $emp->employee_id }}
+                            -
+                            {{ $emp->first_name }}
+                            {{ $emp->last_name }}
+                        </option>
+                    @endforeach
 
-        <div class="export-group">
-            <button class="btn-export btn-excel">Export Excel</button>
-            <button class="btn-export btn-pdf">Export PDF</button>
-        </div>
+                </select>
+
+                <input type="date" name="start_date">
+                <input type="date" name="end_date">
+
+                <button class="btn-generate" type="submit">
+                    Generate Report
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
 
@@ -280,27 +291,59 @@
 
             <tbody>
 
-            <tr>
-                <td>EMP001</td>
-                <td>Juan Dela Cruz</td>
-                <td>Feb 24, 2026</td>
-                <td>08:01 AM</td>
-                <td>05:02 PM</td>
-                <td style="color:#198754;font-weight:600;">Present</td>
-            </tr>
+            @if($records->isEmpty())
 
-            <tr>
-                <td>EMP002</td>
-                <td>Maria Santos</td>
-                <td>Feb 24, 2026</td>
-                <td>08:15 AM</td>
-                <td>—</td>
-                <td style="color:#ffc107;font-weight:600;">Late</td>
-            </tr>
+                <tr>
+                    <td colspan="6" style="text-align:center;color:#777;padding:30px;">
+                        No report data found
+                    </td>
+                </tr>
+
+            @else
+
+                @foreach($records as $record)
+
+                    <tr>
+
+                        <td>{{ $record->employee_id }}</td>
+
+                        <td>{{ $record->first_name }} {{ $record->last_name }}</td>
+
+                        <td>
+                            {{ \Carbon\Carbon::parse($record->attendance_date)->format('M d, Y') }}
+                        </td>
+
+                        <td>
+                            {{ $record->time_in
+                            ? \Carbon\Carbon::parse($record->time_in)->format('h:i A')
+                            : '—' }}
+                        </td>
+
+                        <td>
+                            {{ $record->time_out
+                            ? \Carbon\Carbon::parse($record->time_out)->format('h:i A')
+                            : '—' }}
+                        </td>
+
+                        <td style="font-weight:600;
+{{ $record->status=='TIME_OUT' ? 'color:#198754' : 'color:#ffc107' }}">
+
+                            {{ $record->status }}
+
+                        </td>
+
+                    </tr>
+
+                @endforeach
+
+            @endif
 
             </tbody>
 
         </table>
+        <div style="margin-top:15px;">
+            {{ $records->links() }}
+        </div>
 
     </div>
 

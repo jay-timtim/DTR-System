@@ -130,12 +130,47 @@
             color: #dc3545;
             font-weight: 700;
         }
+        .button-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
 
+        .btn-breakout{
+            background:#ff9800;
+        }
+
+        .btn-breakout:hover{
+            background:#e68900;
+            transform:translateY(-2px);
+        }
+
+        .btn-breakin{
+            background:#17a2b8;
+        }
+
+        .btn-breakin:hover{
+            background:#138496;
+            transform:translateY(-2px);
+        }
     </style>
+
 </head>
 <body>
 
+
 <div class="container">
+    @if(session('error'))
+        <div style="color:red;font-weight:bold;">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div style="color:green;font-weight:bold;">
+            {{ session('success') }}
+        </div>
+    @endif
     <div class="company-name">
         BIZMATECH PHILIPPINES
     </div>
@@ -144,22 +179,33 @@
         Daily Time Record System
     </div>
 
-    <form method="POST">
+    <form method="POST" action="/dtr/log">
         @csrf
 
         <div class="input-group">
             <input type="text" name="employee_id" placeholder="Enter Employee ID" required>
         </div>
 
-        <div class="button-group">
-            <button type="submit" class="btn btn-timein">
-                TIME IN
+        <div class="button-grid">
+
+            <button type="submit" name="log_type" value="TIME_IN" class="btn btn-timein">
+                ⏱ TIME IN
             </button>
 
-            <button type="submit" class="btn btn-timeout">
-                TIME OUT
+            <button type="submit" name="log_type" value="BREAK_OUT" class="btn btn-breakout">
+                ☕ BREAK OUT
             </button>
+
+            <button type="submit" name="log_type" value="BREAK_IN" class="btn btn-breakin">
+                🔁 BREAK IN
+            </button>
+
+            <button type="submit" name="log_type" value="TIME_OUT" class="btn btn-timeout">
+                ⏹ TIME OUT
+            </button>
+
         </div>
+
     </form>
 
     <div class="admin-link">

@@ -12,17 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attendance_logs', function (Blueprint $table) {
+
             $table->id();
 
-            $table->foreignId('employee_id')
-                ->constrained('employees')
-                ->cascadeOnDelete();
+            // String employee_id foreign key
+            $table->string('employee_id');
 
             $table->timestamp('log_time');
-            $table->string('log_type'); // IN or OUT
+            $table->string('log_type');
+            $table->date('log_date');
             $table->string('device_name')->nullable();
 
             $table->timestamps();
+
+            // Foreign key constraint (PostgreSQL compatible)
+            $table->foreign('employee_id')
+                ->references('employee_id')
+                ->on('employees')
+                ->cascadeOnDelete();
         });
     }
 

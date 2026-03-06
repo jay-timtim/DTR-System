@@ -173,7 +173,6 @@
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
     <h2>DTR ADMIN</h2>
 
@@ -184,7 +183,6 @@
     <a href="/logout">Logout</a>
 </div>
 
-<!-- MAIN CONTENT -->
 <div class="main">
 
     <div class="topbar">
@@ -194,71 +192,119 @@
         </div>
     </div>
 
-    <!-- DASHBOARD CARDS -->
+    <!-- Dashboard Metrics -->
     <div class="cards">
+
         <div class="card">
             <h3>Total Employees</h3>
-            <p>120</p>
+            <p>{{ $totalEmployees }}</p>
         </div>
 
         <div class="card">
             <h3>Present Today</h3>
-            <p>98</p>
+            <p>{{ $presentToday }}</p>
         </div>
 
         <div class="card">
             <h3>Late Today</h3>
-            <p>5</p>
+            <p>{{ $lateToday }}</p>
         </div>
 
         <div class="card">
             <h3>Absent Today</h3>
-            <p>17</p>
+            <p>{{ $absentToday }}</p>
         </div>
+
     </div>
 
-    <!-- FILTER SECTION -->
+    <!-- Filter Section -->
     <div class="filter-section">
-        <h3>Filter DTR by Date Range</h3>
 
-        <div class="filter-group">
-            <input type="date">
-            <input type="date">
-            <button class="btn-filter">Filter</button>
-        </div>
+        <h3>Filter Attendance Records</h3>
+
+        <form method="GET" action="/admin">
+
+            <div class="filter-group">
+
+                <input type="date" name="start_date">
+                <input type="date" name="end_date">
+
+                <button class="btn-filter" type="submit">
+                    Filter
+                </button>
+
+            </div>
+
+        </form>
+
     </div>
 
-    <!-- TABLE -->
+    <!-- Attendance Table -->
     <div class="table-container">
-        <h3 style="margin-bottom:15px;">Recent Attendance Records</h3>
+
+        <h3 style="margin-bottom:15px;">
+            Recent Attendance Records
+        </h3>
 
         <table>
+
             <thead>
             <tr>
-                <th>Employee ID</th>
-                <th>Name</th>
+                <th>Employee</th>
                 <th>Date</th>
-                <th>Time In</th>
-                <th>Time Out</th>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Device IP</th>
             </tr>
             </thead>
+
             <tbody>
-            <tr>
-                <td>EMP001</td>
-                <td>Juan Dela Cruz</td>
-                <td>Feb 24, 2026</td>
-                <td>08:01 AM</td>
-                <td>05:02 PM</td>
-            </tr>
-            <tr>
-                <td>EMP002</td>
-                <td>Maria Santos</td>
-                <td>Feb 24, 2026</td>
-                <td>08:15 AM</td>
-                <td>—</td>
-            </tr>
+
+            @if($recentLogs->isEmpty())
+
+                <tr>
+                    <td colspan="5" style="text-align:center;color:#888;">
+                        No attendance records found
+                    </td>
+                </tr>
+
+            @else
+
+                @foreach($recentLogs as $log)
+
+                    <tr>
+
+                        <td>
+                            {{ $log->first_name }}
+                            {{ $log->last_name }}
+                        </td>
+
+                        <td>
+                            {{ \Carbon\Carbon::parse($log->log_time)->format('M d, Y') }}
+                        </td>
+
+                        <td>
+                            {{ \Carbon\Carbon::parse($log->log_time)->format('h:i A') }}
+                        </td>
+
+                        <td>
+                            {{ $log->log_type }}
+                        </td>
+
+                        <td>
+                            {{ $log->device_name }}
+                        </td>
+
+                    </tr>
+
+                @endforeach
+
+            @endif
+
             </tbody>
+
         </table>
+
     </div>
 
 </div>
