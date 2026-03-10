@@ -180,6 +180,34 @@
             font-weight:600;
         }
 
+        .table-container{
+            background:white;
+            padding:25px;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,.08);
+            overflow-x:auto;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            min-width:900px;
+        }
+
+        th{
+            background:#1e3c72;
+            color:white;
+            font-weight:500;
+        }
+
+        td{
+            border-bottom:1px solid #eee;
+        }
+
+        tr:hover{
+            background:#f5f8ff;
+        }
+
     </style>
 
 </head>
@@ -266,6 +294,8 @@
                 <th>Name</th>
                 <th>Date</th>
                 <th>Time In</th>
+                <th>Break Out</th>
+                <th>Break In</th>
                 <th>Time Out</th>
                 <th>Status</th>
             </tr>
@@ -276,7 +306,7 @@
             @if($records->isEmpty())
 
                 <tr>
-                    <td colspan="6" style="text-align:center;color:#777;padding:30px;">
+                    <td colspan="7" style="text-align:center;padding:30px;">
                         No attendance records found
                     </td>
                 </tr>
@@ -289,49 +319,49 @@
 
                         <td>{{ $record->employee_id }}</td>
 
-                        <td>{{ $record->first_name }} {{ $record->last_name }}</td>
-
                         <td>
-                            {{ \Carbon\Carbon::parse($record->log_time)->format('M d, Y') }}
+                            {{ $record->first_name }} {{ $record->last_name }}
                         </td>
 
                         <td>
-                            {{ \Carbon\Carbon::parse($record->log_time)->format('h:i A') }}
+                            {{ \Carbon\Carbon::parse($record->date)->format('M d, Y') }}
                         </td>
 
                         <td>
-                            {{ $record->log_type == 'TIME_OUT'
-                            ? \Carbon\Carbon::parse($record->log_time)->format('h:i A')
-                            : '—' }}
+                            {{ $record->time_in
+                            ? \Carbon\Carbon::parse($record->time_in)->format('h:i A')
+                            : '-' }}
+                        </td>
+
+                        <td>
+                            {{ $record->break_out
+                            ? \Carbon\Carbon::parse($record->break_out)->format('h:i A')
+                            : '-' }}
+                        </td>
+
+                        <td>
+                            {{ $record->break_in
+                            ? \Carbon\Carbon::parse($record->break_in)->format('h:i A')
+                            : '-' }}
+                        </td>
+
+                        <td>
+                            {{ $record->time_out
+                            ? \Carbon\Carbon::parse($record->time_out)->format('h:i A')
+                            : '-' }}
                         </td>
 
                         <td>
 
-                            @php
-                                $status = '';
+                            @if($record->time_out)
+                                <span class="status-present">Completed</span>
 
-                                if($record->log_type == 'TIME_IN'){
-                                    $status = 'Present';
-                                }
-                                elseif($record->log_type == 'BREAK_OUT'){
-                                    $status = 'On Break';
-                                }
-                                elseif($record->log_type == 'BREAK_IN'){
-                                    $status = 'Returned';
-                                }
-                                elseif($record->log_type == 'TIME_OUT'){
-                                    $status = 'Completed';
-                                }
-                            @endphp
+                            @elseif($record->time_in)
+                                <span class="status-late">Present</span>
 
-                            <span class="
-{{ $status == 'Present' ? 'status-present' :
-($status == 'On Break' ? 'status-late' : 'status-absent') }}
-">
-
-{{ $status }}
-
-</span>
+                            @else
+                                <span class="status-absent">Absent</span>
+                            @endif
 
                         </td>
 

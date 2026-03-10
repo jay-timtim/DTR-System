@@ -112,19 +112,23 @@
             border-collapse:collapse;
         }
 
-        th,td{
-            padding:12px;
-            font-size:13px;
-            text-align:left;
-        }
-
         th{
-            background:#2a5298;
+            background:#1e3c72;
             color:white;
+            font-weight:500;
         }
 
-        tr:nth-child(even){
-            background:#f9f9f9;
+        td{
+            border-bottom:1px solid #eee;
+        }
+
+        tr:hover{
+            background:#f1f5ff;
+        }
+
+        .actions{
+            display:flex;
+            gap:6px;
         }
 
         .employee-photo{
@@ -138,20 +142,18 @@
 
         .btn-edit{
             background:#ffc107;
-            border:none;
-            padding:6px 10px;
-            border-radius:5px;
-            cursor:pointer;
+            color:black;
+            padding:6px 12px;
+            border-radius:6px;
             font-size:12px;
+            text-decoration:none;
         }
 
         .btn-delete{
             background:#dc3545;
             color:white;
-            border:none;
-            padding:6px 10px;
-            border-radius:5px;
-            cursor:pointer;
+            padding:6px 12px;
+            border-radius:6px;
             font-size:12px;
         }
 
@@ -161,7 +163,7 @@
             display:none;
             position:fixed;
             inset:0;
-            background:rgba(0,0,0,0.5);
+            background:rgba(0,0,0,.4);
             justify-content:center;
             align-items:center;
         }
@@ -171,8 +173,18 @@
             padding:25px;
             border-radius:12px;
             width:500px;
-            max-height:90vh;
-            overflow-y:auto;
+            animation:fadeIn .2s ease;
+        }
+
+        @keyframes fadeIn{
+            from{
+                transform:scale(.95);
+                opacity:0;
+            }
+            to{
+                transform:scale(1);
+                opacity:1;
+            }
         }
 
         .modal-content h3{
@@ -245,7 +257,13 @@
     <div class="search-bar">
         <input type="text" id="employeeSearch" placeholder="Search employee...">
     </div>
+    @if(session('success'))
 
+        <div style="background:#d1e7dd;color:#0f5132;padding:12px;border-radius:8px;margin-bottom:15px;">
+            {{ session('success') }}
+        </div>
+
+    @endif
     <div class="table-container">
         <table>
 
@@ -281,19 +299,46 @@
                     <td>{{ $employee->employment_status }}</td>
 
                     <td>
-                        {{ \Carbon\Carbon::parse($employee->schedule_start)->format('H:i') }}
+
+                        {{ \Carbon\Carbon::parse($employee->schedule_start)->format('h:i A') }}
+
                         -
-                        {{ \Carbon\Carbon::parse($employee->break_start)->format('H:i') }}
-                        /
-                        {{ \Carbon\Carbon::parse($employee->break_end)->format('H:i') }}
-                        -
-                        {{ \Carbon\Carbon::parse($employee->schedule_end)->format('H:i') }}
+
+                        {{ \Carbon\Carbon::parse($employee->schedule_end)->format('h:i A') }}
+
+                        <br>
+
+                        <span style="font-size:12px;color:#666">
+
+Break:
+{{ \Carbon\Carbon::parse($employee->break_start)->format('h:i A') }}
+-
+{{ \Carbon\Carbon::parse($employee->break_end)->format('h:i A') }}
+
+</span>
+
                     </td>
 
-                    <td>
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
+
+                    <td class="actions">
+
+                        <a href="{{ route('employees.edit',$employee->employee_id) }}" class="btn-edit">
+                            Edit
+                        </a>
+
+                        <form action="{{ route('employees.destroy',$employee->employee_id) }}" method="POST" class="delete-form">
+
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit" class="btn-delete">
+                                Delete
+                            </button>
+
+                        </form>
+
                     </td>
+
 
                 </tr>
             @endforeach
@@ -301,6 +346,9 @@
             </tbody>
 
         </table>
+        <div style="margin-top:20px;">
+            {{ $employees->links() }}
+        </div>
     </div>
 
 </div>
@@ -406,6 +454,7 @@
                 <button type="submit" class="btn-save">Save Employee</button>
             </div>
 
+
         </div>
 
     </form>
@@ -413,6 +462,17 @@
 </div>
 
 <script>
+    document.querySelectorAll(".delete-form").forEach(form => {
+
+        form.addEventListener("submit", function(e){
+
+            if(!confirm("Are you sure you want to delete this employee?")){
+                e.preventDefault();
+            }
+
+        });
+
+    });
 
     function generateEmployeeIdPreview() {
 

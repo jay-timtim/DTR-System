@@ -7,6 +7,46 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
+    public function getStatus($employeeId)
+    {
+        $today = now()->toDateString();
+
+        $lastLog = DB::table('attendance_logs')
+            ->where('employee_id',$employeeId)
+            ->whereDate('log_time',$today)
+            ->orderByDesc('id')
+            ->first();
+
+        if(!$lastLog){
+            return response()->json([
+                'next' => ['TIME_IN']
+            ]);
+        }
+
+        switch($lastLog->log_type){
+
+            case 'TIME_IN':
+                return response()->json([
+                    'next' => ['BREAK_OUT','TIME_OUT']
+                ]);
+
+            case 'BREAK_OUT':
+                return response()->json([
+                    'next' => ['BREAK_IN']
+                ]);
+
+            case 'BREAK_IN':
+                return response()->json([
+                    'next' => ['TIME_OUT']
+                ]);
+
+            case 'TIME_OUT':
+                return response()->json([
+                    'next' => []
+                ]);
+        }
+    }
+
     public function log(Request $request)
     {
         $employeeId = $request->employee_id;

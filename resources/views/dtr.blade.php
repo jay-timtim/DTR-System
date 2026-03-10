@@ -72,16 +72,15 @@
             gap: 15px;
         }
 
-        .btn {
-            flex: 1;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s ease;
-            color: white;
+        .btn{
+            flex:1;
+            padding:18px;
+            font-size:18px;
+            font-weight:600;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+            color:white;
         }
 
         .btn-timein {
@@ -153,6 +152,33 @@
             background:#138496;
             transform:translateY(-2px);
         }
+
+
+
+        #barcode-scanner {
+                 /* fixed relative to container */
+            top: 20px;                /* distance from container top */
+            left: 50%;                /* center horizontally */
+            width: 400px;             /* fixed width */
+            height: 250px;            /* fixed height */
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            z-index: 10;              /* above other container content if needed */
+        }
+
+        #barcode-scanner video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;        /* maintain aspect ratio */
+        }
+
+        /* Adjust container padding to make room for scanner */
+
+
+        /* Overlay for scanning guidance */
+
     </style>
 
 </head>
@@ -178,32 +204,17 @@
     <div class="title">
         Daily Time Record System
     </div>
-
+        <div id="barcode-scanner">
+        </div>
     <form method="POST" action="/dtr/log">
         @csrf
 
-        <div class="input-group">
-            <input type="text" name="employee_id" placeholder="Enter Employee ID" required>
-        </div>
 
-        <div class="button-grid">
+            <input type="text" name="employee_id" id="employeeInput" placeholder="Scan barcode or enter ID" autocomplete="off" required>
 
-            <button type="submit" name="log_type" value="TIME_IN" class="btn btn-timein">
-                ⏱ TIME IN
-            </button>
 
-            <button type="submit" name="log_type" value="BREAK_OUT" class="btn btn-breakout">
-                ☕ BREAK OUT
-            </button>
-
-            <button type="submit" name="log_type" value="BREAK_IN" class="btn btn-breakin">
-                🔁 BREAK IN
-            </button>
-
-            <button type="submit" name="log_type" value="TIME_OUT" class="btn btn-timeout">
-                ⏹ TIME OUT
-            </button>
-
+        <div class="button-grid" id="actionButtons">
+            <button disabled class="btn">Enter Employee ID</button>
         </div>
 
     </form>
@@ -253,6 +264,199 @@
 
     setInterval(updateClock, 1000);
     updateClock();
+</script>
+<script>
+
+    const employeeInput = document.querySelector("input[name='employee_id']");
+    const buttonContainer = document.getElementById("actionButtons");
+
+    employeeInput.addEventListener("keyup", function(){
+
+        let id = this.value.trim();
+
+        if(id.length < 3){
+            buttonContainer.innerHTML =
+                `<button disabled class="btn">Enter Employee ID</button>`;
+            return;
+        }
+
+        fetch(`/dtr/status/${id}`)
+            .then(res => res.json())
+            .then(data => {
+
+                if(data.next.length === 0){
+                    buttonContainer.innerHTML =
+                        `<div style="font-weight:600;color:#28a745;">
+                        Shift Completed
+                    </div>`;
+                    return;
+                }
+
+                let buttons = '';
+
+                data.next.forEach(type => {
+
+                    let label = type.replace('_',' ');
+                    let className = '';
+
+                    if(type==='TIME_IN') className='btn-timein';
+                    if(type==='TIME_OUT') className='btn-timeout';
+                    if(type==='BREAK_OUT') className='btn-breakout';
+                    if(type==='BREAK_IN') className='btn-breakin';
+
+                    buttons += `
+                <button type="submit"
+                    name="log_type"
+                    value="${type}"
+                    class="btn ${className}">
+                    ${label}
+                </button>
+                `;
+                });
+
+                buttonContainer.innerHTML = buttons;
+
+            });
+
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+<audio id="beepSound">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
+
+
+<script>
+    const scannerContainer = document.getElementById("barcode-scanner");
+    const beep = document.getElementById("beepSound");
+
+    let lastScan = null;
+    let scanning = false;
+
+    console.log("🚀 Initializing Quagga2 scanner...");
+
+    function startScanner() {
+        if (scanning) {
+            console.warn("⚠️ Scanner already running.");
+            return;
+        }
+
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: scannerContainer,
+                constraints: {
+                    width: 640,
+                    height: 480,
+                    facingMode: "environment"
+                }
+            },
+            locator: { patchSize: "medium", halfSample: true },
+            decoder: { readers: ["code_128_reader"] },
+            locate: true,
+            frequency: 10
+        }, function(err) {
+            if (err) {
+                console.error("❌ Quagga2 init failed:", err);
+                return;
+            }
+            console.log("✅ Quagga2 initialized successfully");
+            Quagga.start();
+            scanning = true;
+            console.log("📷 Camera stream started");
+        });
+    }
+
+    /* Triggered when a barcode is detected */
+    Quagga.onDetected(function(data) {
+        const code = data.codeResult?.code;
+
+        if (!code) {
+            console.warn("⚠️ No code in result");
+            return;
+        }
+
+        console.log("🎯 Barcode detected:", code);
+
+        if (code === lastScan) {
+            console.log("⚠️ Duplicate scan ignored");
+            return;
+        }
+
+        lastScan = code;
+
+        // Only accept Code128 format (EMP-XXXXX)
+        const valid = /^EMP-[A-Z0-9]+$/;
+        if (!valid.test(code)) {
+            console.warn("⚠️ Barcode format invalid:", code);
+            return;
+        }
+
+        console.log("✅ Valid scan:", code);
+        employeeInput.value = code;
+
+        // Play beep sound
+        try { beep.play(); } catch(err) { console.error("Beep failed", err); }
+
+        // Fetch employee status automatically
+        fetch(`/dtr/status/${code}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log("📡 Employee status fetched:", data);
+
+                if (data.next.length === 0) {
+                    buttonContainer.innerHTML = `
+                    <div style="font-weight:600;color:#28a745;">
+                        Shift Completed
+                    </div>`;
+                    return;
+                }
+
+                let buttons = '';
+                data.next.forEach(type => {
+                    let label = type.replace('_', ' ');
+                    let className = '';
+                    if(type === 'TIME_IN') className = 'btn-timein';
+                    if(type === 'TIME_OUT') className = 'btn-timeout';
+                    if(type === 'BREAK_OUT') className = 'btn-breakout';
+                    if(type === 'BREAK_IN') className = 'btn-breakin';
+
+                    buttons += `<button type="submit"
+                    name="log_type"
+                    value="${type}"
+                    class="btn ${className}">
+                    ${label}
+                </button>`;
+                });
+
+                buttonContainer.innerHTML = buttons;
+
+                // Optionally: automatically submit first action
+                // attendanceForm.submit();
+            })
+            .catch(err => {
+                console.error("❌ Error fetching employee status:", err);
+            });
+
+        // Reset lastScan after a short delay
+        setTimeout(() => {
+            lastScan = null;
+            console.log("🔄 Ready for next scan");
+        }, 1500);
+    });
+
+    /* Stop scanner */
+    function stopScanner() {
+        if (scanning) {
+            Quagga.stop();
+            scanning = false;
+            console.log("🛑 Scanner stopped");
+        }
+    }
+
+    /* Start scanner automatically */
+    startScanner();
 </script>
 
 </body>
