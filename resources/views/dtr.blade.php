@@ -387,11 +387,11 @@
         lastScan = code;
 
         // Only accept Code128 format (EMP-XXXXX)
-        const valid = /^EMP-[A-Z0-9]+$/;
-        if (!valid.test(code)) {
-            console.warn("⚠️ Barcode format invalid:", code);
-            return;
-        }
+        // const valid = /^EMP-[A-Z0-9]+$/;
+        // if (!valid.test(code)) {
+        //     console.warn("⚠️ Barcode format invalid:", code);
+        //     return;
+        // }
 
         console.log("✅ Valid scan:", code);
         employeeInput.value = code;
