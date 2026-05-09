@@ -25,4 +25,4 @@ RUN DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan package:discover --ans
 RUN DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan key:generate
 # 7. Start container command
 # At runtime, Render will inject your actual Postgres credentials, so this will run cleanly!
-CMD php artisan migrate --seed --force && php artisan serve --host=0.0.0.0 --port=10000
+CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --seed --force && php artisan serve --host=0.0.0.0 --port=10000
