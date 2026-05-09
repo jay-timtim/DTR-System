@@ -14,16 +14,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
 
 # 4. Copy the .env.example to .env BEFORE running composer
-# This ensures Laravel has a configuration file to read during optimization
 RUN cp .env.example .env
 
-# 5. Install composer packages without running post-install scripts (database check bypass)
+# 5. Install composer packages without running post-install scripts
 RUN composer install --no-dev --no-scripts --optimize-autoloader
 
 # 6. Run package discovery and key generation safely
-RUN php artisan package:discover --ansi
+# We temporarily set the DB_CONNECTION to "sqlite" and the DB_DATABASE to ":memory:"
+# This fools the bootstrapper into using a temporary, empty, in-memory database so it doesn't crash!
+RUN DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan package:discover --ansi
 RUN php artisan key:generate
 
 # 7. Start container command
-# We run migrations and seeders here at RUNTIME, then start the server
+# At runtime, Render will inject your actual Postgres credentials, so this will run cleanly!
 CMD php artisan migrate --seed --force && php artisan serve --host=0.0.0.0 --port=10000
