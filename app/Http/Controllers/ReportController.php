@@ -36,9 +36,9 @@ class ReportController extends Controller
                 'e.last_name',
                 DB::raw("DATE(a.log_time) as attendance_date"),
 
-                DB::raw("MIN(CASE WHEN a.log_type = 'TIME_IN' THEN a.log_time END) as time_in"),
+                DB::raw("MIN(CASE WHEN a.log_type = 'FIRST TIME IN' THEN a.log_time END) as time_in"),
 
-                DB::raw("MAX(CASE WHEN a.log_type = 'TIME_OUT' THEN a.log_time END) as time_out"),
+                DB::raw("MAX(CASE WHEN a.log_type = 'SECOND TIME OUT' THEN a.log_time END) as time_out"),
 
                 DB::raw("MAX(a.log_type) as status")
             )

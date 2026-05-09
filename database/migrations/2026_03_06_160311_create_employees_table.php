@@ -19,15 +19,18 @@ return new class extends Migration
             $table->string('employee_id')->unique();
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('middle_name')->nullable();
             $table->string('gender')->nullable();
-
+            $table->date('birthday');
             // Contact / Address
             $table->text('address')->nullable();
 
             // Work Information
+            $table->string('department')->nullable();
             $table->string('position')->nullable();
             $table->string('employment_status')->default('regular');
-
+            $table->date('date_hired')->nullable();
+            $table->string('basic_salary')->nullable();
             /*
             Examples:
             regular

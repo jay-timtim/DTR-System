@@ -19,32 +19,22 @@ class AttendanceController extends Controller
 
         if(!$lastLog){
             return response()->json([
-                'next' => ['TIME_IN']
+                'next' => ['FIRST TIME IN','SECOND TIME IN','FIRST TIME OUT','SECOND TIME OUT']
+            ]);
+        }
+        elseif($lastLog->log_type == 'SECOND TIME OUT'){
+            return response()->json([
+                'next' => []
             ]);
         }
 
-        switch($lastLog->log_type){
-
-            case 'TIME_IN':
-                return response()->json([
-                    'next' => ['BREAK_OUT','TIME_OUT']
-                ]);
-
-            case 'BREAK_OUT':
-                return response()->json([
-                    'next' => ['BREAK_IN']
-                ]);
-
-            case 'BREAK_IN':
-                return response()->json([
-                    'next' => ['TIME_OUT']
-                ]);
-
-            case 'TIME_OUT':
-                return response()->json([
-                    'next' => []
-                ]);
+        // Check if the property equals the string
+        else {
+            return response()->json([
+                'next' => ['FIRST TIME IN','SECOND TIME IN','FIRST TIME OUT','SECOND TIME OUT']
+            ]);
         }
+
     }
 
     public function log(Request $request)
@@ -59,7 +49,11 @@ class AttendanceController extends Controller
             ->first();
 
         if(!$employee){
-            return back()->with('error','Employee not found');
+            // Change: Return JSON instead of back()
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
         }
 
         /*
@@ -67,19 +61,20 @@ class AttendanceController extends Controller
         Prevent Duplicate Punch Within 30 Seconds
         ------------------------------------------------
         */
-
         $lastLog = DB::table('attendance_logs')
             ->where('employee_id', $employeeId)
             ->orderByDesc('id')
             ->first();
 
         if($lastLog){
-
             $lastLogTime = strtotime($lastLog->log_time);
             $currentTime = time();
 
             if(($currentTime - $lastLogTime) < 3){
-                return back()->with('error','Please wait before logging again');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please wait before logging again'
+                ], 429);
             }
         }
 
@@ -88,7 +83,6 @@ class AttendanceController extends Controller
         Attendance State Validation Engine
         ------------------------------------------------
         */
-
         $latestLog = DB::table('attendance_logs')
             ->where('employee_id', $employeeId)
             ->whereDate('log_time', $today)
@@ -97,47 +91,28 @@ class AttendanceController extends Controller
 
         $allowed = false;
 
+        // Logic remains same, but ensure log types match your frontend button values
         if(!$latestLog){
-
-            // First log must be TIME_IN
-            if($logType == 'TIME_IN'){
-                $allowed = true;
-            }
-
-        }else{
-
+            if($logType == 'FIRST TIME IN') $allowed = true;
+        } else {
             switch($latestLog->log_type){
-
-                case 'TIME_IN':
-
-                    if(in_array($logType,['BREAK_OUT','TIME_OUT'])){
-                        $allowed = true;
-                    }
-
+                case 'FIRST TIME IN':
+                    if(in_array($logType, ['FIRST TIME OUT', 'SECOND TIME OUT'])) $allowed = true;
                     break;
-
-                case 'BREAK_OUT':
-
-                    if($logType == 'BREAK_IN'){
-                        $allowed = true;
-                    }
-
+                case 'FIRST TIME OUT':
+                    if($logType == 'SECOND TIME IN') $allowed = true;
                     break;
-
-                case 'BREAK_IN':
-
-                    if($logType == 'TIME_OUT'){
-                        $allowed = true;
-                    }
-
+                case 'SECOND TIME IN':
+                    if($logType == 'SECOND TIME OUT') $allowed = true;
                     break;
-
             }
-
         }
 
         if(!$allowed){
-            return back()->with('error','Invalid attendance sequence');
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid attendance sequence'
+            ], 400);
         }
 
         /*
@@ -145,7 +120,6 @@ class AttendanceController extends Controller
         Insert Attendance Log
         ------------------------------------------------
         */
-
         DB::table('attendance_logs')->insert([
             'employee_id' => $employeeId,
             'log_time' => now(),
@@ -156,7 +130,11 @@ class AttendanceController extends Controller
             'updated_at' => now()
         ]);
 
-        return back()->with('success','Attendance recorded');
+        // Change: Success JSON response
+        return response()->json([
+            'success' => true,
+            'message' => 'Attendance recorded: ' . str_replace('_', ' ', $logType)
+        ]);
     }
 
 }
