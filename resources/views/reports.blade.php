@@ -348,8 +348,7 @@
             <a href="/admin/salary-calculator" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-calculator" style="margin-right: 8px;"></i> Salary Calculator</a>
             <a href="/admin/deductions" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-percent" style="margin-right: 8px;"></i> Deduction Settings</a>
             <a href="/admin/settings" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-sliders-h" style="margin-right: 8px;"></i> System Settings</a>
-            <a href="/admin/settings#factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>
-        </div>
+            <a href="/admin/factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>        </div>
     </div>
     <a style="margin-top: auto; color: #ff6b6b;" href="/logout"><i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Logout</a>
 </div>
@@ -414,19 +413,25 @@
                 <select name="employee_id">
                     <option value="">Full Staff Report</option>
                     @foreach($employees as $emp)
-                        <option value="{{ $emp->employee_id }}">
+                        <option value="{{ $emp->employee_id }}" {{ request('employee_id') == $emp->employee_id ? 'selected' : '' }}>
                             {{ $emp->employee_id }} - {{ $emp->first_name }} {{ $emp->last_name }}
                         </option>
                     @endforeach
                 </select>
 
-                <input type="date" name="start_date">
+                <input type="date" name="start_date" value="{{ request('start_date') }}">
                 <span style="color: var(--text-muted);">to</span>
-                <input type="date" name="end_date">
+                <input type="date" name="end_date" value="{{ request('end_date') }}">
 
                 <button class="btn-generate" type="submit">
                     Run Analysis
                 </button>
+
+                @if(request()->filled(['start_date', 'end_date']) || request()->filled('employee_id'))
+                    <a href="/reports" style="color: #ff6b6b; font-size: 13px; text-decoration: none; margin-left: 10px;">
+                        <i class="fas fa-times"></i> Clear Filter
+                    </a>
+                @endif
             </div>
         </form>
     </div>

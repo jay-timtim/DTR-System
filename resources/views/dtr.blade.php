@@ -5,7 +5,6 @@
     <title>BIZMATECH | Professional DTR System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
@@ -168,18 +167,75 @@
         #liveDayDate { font-size: 14px; color: var(--gold-primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
         #liveClock { font-size: 36px; font-weight: 800; margin-top: 5px; }
         .seconds { color: #e74c3c; }
+
         /* Fix for dynamic buttons */
         .button-group {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* This creates the 2x2 grid */
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
             width: 100%;
         }
 
         /* Ensure the form takes up full width */
         #actionButtons form {
-
             width: 100%;
+        }
+
+        /* --- SIDEWAYS KEYBOARD SHORTCUT REMINDER MODAL --- */
+        .shortcut-reminder {
+            position: fixed;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-150%);
+            width: 260px;
+            background: var(--bg-container);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--gold-primary);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 35px var(--btn-shadow);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            pointer-events: none;
+        }
+        .shortcut-reminder.visible {
+            transform: translateY(-50%) translateX(0);
+        }
+        .shortcut-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gold-primary);
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .shortcut-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .shortcut-row:last-child { margin-bottom: 0; }
+        .key-badge {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom: 3px solid var(--border-color);
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 11px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .action-label {
+            color: var(--text-secondary);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -190,7 +246,28 @@
     <p style="color: #d4af37; letter-spacing: 2px; font-size: 10px;">SECURE ACCESS VERIFICATION</p>
 </div>
 
-<!-- Camera Modal -->
+<div class="shortcut-reminder" id="shortcutReminder">
+    <div class="shortcut-header">
+        <i class="fas fa-keyboard"></i> DTR Shortcuts
+    </div>
+    <div class="shortcut-row">
+        <span class="action-label">First Time In</span>
+        <kbd class="key-badge">F1</kbd>
+    </div>
+    <div class="shortcut-row">
+        <span class="action-label">First Time Out</span>
+        <kbd class="key-badge">F2</kbd>
+    </div>
+    <div class="shortcut-row">
+        <span class="action-label">Second Time In</span>
+        <kbd class="key-badge">F3</kbd>
+    </div>
+    <div class="shortcut-row">
+        <span class="action-label">Second Time Out</span>
+        <kbd class="key-badge">F4</kbd>
+    </div>
+</div>
+
 <div id="camera-modal">
     <div id="scanner-view"></div>
     <div class="close-camera" onclick="toggleCamera()"><i class="fas fa-times-circle"></i> Close Scanner</div>
@@ -217,11 +294,8 @@
             <button disabled class="btn">Waiting for ID...</button>
         </div>
     </div>
-
-
 </div>
 
-<!-- Floating Action Button -->
 <div class="fab-wrapper">
     <div class="fab-menu" id="fabMenu">
         <div class="fab-item" onclick="toggleTheme()">
@@ -246,7 +320,6 @@
     </div>
 </div>
 
-<!-- Small Recent Logs View -->
 <div id="recent-logs">
     <h4 style="font-size: 12px; margin-bottom: 10px; color: var(--gold-primary);">Recent Activity</h4>
     <div id="logs-list" style="font-size: 11px;">
@@ -273,10 +346,60 @@
         }
     }
 
+    // --- RECENT LOGS ENGINE ---
     function toggleLogs() {
         const panel = document.getElementById('recent-logs');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'block';
+            fetchRecentLogs(); // Refresh instantly when opened
+        }
     }
+
+    function fetchRecentLogs() {
+        fetch('/dtr/recent-logs')
+            .then(res => res.json())
+            .then(logs => {
+                const listContainer = document.getElementById('logs-list');
+
+                if (logs.length === 0) {
+                    listContainer.innerHTML = `<p style="color: var(--text-secondary); padding: 10px 0; text-align: center;">No recent logs today.</p>`;
+                    return;
+                }
+
+                let html = '';
+                logs.forEach(log => {
+                    let logTime = new Date(log.log_time);
+                    let formattedTime = logTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    let isIn = log.log_type.toLowerCase().includes('in');
+                    let statusColor = isIn ? '#2ecc71' : '#e74c3c';
+
+                    html += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="font-weight: 600; color: var(--text-primary); display: block;">${log.first_name} ${log.last_name}</span>
+                                <span style="font-size: 10px; font-weight: 700; color: ${statusColor}; text-transform: uppercase;">${log.log_type.replace(/_/g, ' ')}</span>
+                            </div>
+                            <div style="color: var(--gold-primary); font-family: monospace; font-weight: 600; white-space: nowrap;">
+                                ${formattedTime}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listContainer.innerHTML = html;
+            })
+            .catch(err => console.error("Error fetching logs:", err));
+    }
+
+    setInterval(() => {
+        const panel = document.getElementById('recent-logs');
+        if (panel.style.display === 'block') {
+            fetchRecentLogs();
+        }
+    }, 15000);
 
     // --- CLOCK ---
     function updateClock() {
@@ -305,10 +428,19 @@
     const empInput = document.getElementById('employeeInput');
     const btnBox = document.getElementById('actionButtons');
     const responseMsg = document.getElementById('responseMsg');
+    const shortcutReminder = document.getElementById('shortcutReminder');
 
-    // 1. Handle dynamic button generation
+    // Handle dynamic button generation and side modal visibility
     empInput.addEventListener('keyup', function() {
         let id = this.value.trim();
+
+        // Show/Hide Reminder based on whether field is empty
+        if (id.length > 0) {
+            shortcutReminder.classList.add('visible');
+        } else {
+            shortcutReminder.classList.remove('visible');
+        }
+
         if(id.length < 3) {
             btnBox.innerHTML = `<button disabled class="btn">Waiting for ID...</button>`;
             return;
@@ -337,18 +469,17 @@
                     html += `<button type="submit" name="log_type" value="${type}" class="btn btn-${cls}">${label}</button>`;
                 });
 
-                `</div></form>`;
+                html += `</div></form>`;
                 btnBox.innerHTML = html;
             });
     });
 
-    // 2. Handle the actual logging via AJAX (Prevents Refresh)
+    // Handle the actual logging via AJAX
     document.addEventListener('submit', function(e) {
         if (e.target && e.target.id === 'ajaxLogForm') {
-            e.preventDefault(); // This stops the page from refreshing
+            e.preventDefault();
 
             const formData = new FormData(e.target);
-            // Get the value of the specific button clicked
             formData.append('log_type', e.submitter.value);
 
             fetch('/dtr/log', {
@@ -360,7 +491,6 @@
             })
                 .then(res => res.json())
                 .then(data => {
-                    // Show Success/Error Message
                     responseMsg.innerHTML = `
                 <div style="padding: 15px; border-radius: 10px; margin-bottom: 20px;
                 background: ${data.success ? 'rgba(39, 174, 96, 0.2)' : 'rgba(231, 76, 60, 0.2)'};
@@ -368,16 +498,19 @@
                     ${data.message}
                 </div>`;
 
-                    // Reset UI
+                    // Reset elements and hide reminder modal instantly
                     empInput.value = '';
+                    shortcutReminder.classList.remove('visible');
                     btnBox.innerHTML = `<button disabled class="btn">Waiting for ID...</button>`;
 
-                    // Hide message after 5 seconds
+                    if (data.success) {
+                        fetchRecentLogs();
+                    }
+
                     setTimeout(() => { responseMsg.innerHTML = ''; }, 5000);
                 })
                 .catch(err => {
-                    console.error(err);
-                    alert("An error occurred while logging.");
+                    console.error("An error occurred during submission:", err);
                 });
         }
     });
@@ -415,6 +548,29 @@
             setTimeout(() => { document.getElementById('loader-wrapper').style.display = 'none'; }, 600);
         }, 2000);
     };
+
+    // --- KEYBOARD SHORTCUTS ENGINE (F1 - F4) ---
+    document.addEventListener('keydown', function(e) {
+        const keyMap = {
+            'F1': 'FIRST TIME IN',
+            'F2': 'FIRST TIME OUT',
+            'F3': 'SECOND TIME IN',
+            'F4': 'SECOND TIME OUT'
+
+        };
+
+        if (keyMap[e.key]) {
+            e.preventDefault();
+
+            const targetButton = document.querySelector(`#ajaxLogForm button[value="${keyMap[e.key]}"]`);
+
+            if (targetButton) {
+                targetButton.click();
+            } else {
+                console.warn(`Shortcut ${e.key} pressed, but action button "${keyMap[e.key]}" is not active or visible.`);
+            }
+        }
+    });
 </script>
 
 </body>

@@ -187,6 +187,15 @@
             padding-left: 35px !important;
         }
 
+        /* Styled deduction outputs to signify numeric text color */
+        .deduction-wrapper input {
+            color: #e74c3c !important;
+            font-weight: 500;
+        }
+        body.light-mode .deduction-wrapper input {
+            color: #c0392b !important;
+        }
+
         .section-title {
             margin: 35px 0 20px;
             font-size: 13px;
@@ -369,13 +378,49 @@
             </div>
         </div>
 
+        <div class="section-title">Statutory & Monthly Deductions</div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>SSS Deduction</label>
+                <div class="salary-input-wrapper deduction-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <input type="number" name="sss_deduction" value="{{ $employee->sss_deduction ?? '0.00' }}" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Pag-IBIG Deduction</label>
+                <div class="salary-input-wrapper deduction-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <input type="number" name="pagibig_deduction" value="{{ $employee->pagibig_deduction ?? '0.00' }}" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>PhilHealth Deduction</label>
+                <div class="salary-input-wrapper deduction-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <input type="number" name="philhealth_deduction" value="{{ $employee->philhealth_deduction ?? '0.00' }}" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Other Deductions</label>
+                <div class="salary-input-wrapper deduction-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <input type="number" name="other_deductions" value="{{ $employee->other_deductions ?? '0.00' }}" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+        </div>
+
         <div class="section-title">Work Cycle (Standard Time)</div>
 
         <div class="schedule-grid">
-            <div class="form-group"><label>Shift Start</label><input type="time" name="schedule_start" value="{{ $employee->schedule_start }}"></div>
-            <div class="form-group"><label>Break Start</label><input type="time" name="break_start" value="{{ $employee->break_start }}"></div>
-            <div class="form-group"><label>Break End</label><input type="time" name="break_end" value="{{ $employee->break_end }}"></div>
-            <div class="form-group"><label>Shift End</label><input type="time" name="schedule_end" value="{{ $employee->schedule_end }}"></div>
+            <div class="form-group"><label>FIRST TIME IN</label><input type="time" name="schedule_start" value="{{ $employee->schedule_start }}"></div>
+            <div class="form-group"><label>FIRST TIME OUT</label><input type="time" name="break_start" value="{{ $employee->break_start }}"></div>
+            <div class="form-group"><label>SECOND TIME IN</label><input type="time" name="break_end" value="{{ $employee->break_end }}"></div>
+            <div class="form-group"><label>SECOND TIME OUT</label><input type="time" name="schedule_end" value="{{ $employee->schedule_end }}"></div>
         </div>
 
         <div class="actions">

@@ -21,20 +21,38 @@ class DtrController extends Controller
                 'employees.schedule_end',
                 'attendance_logs.log_date as date',
 
-                // 1st In (Morning) - First log of this type
+                // --- PUNCH TIMESTAMPS ---
+                // 1st In (Morning)
                 DB::raw("MIN(CASE WHEN log_type IN ('TIME_IN', 'FIRST TIME IN') THEN log_time END) as time_in"),
-
-                // 1st Out (Break Out) - Last log of this type
+                // 1st Out (Break Out)
                 DB::raw("MAX(CASE WHEN log_type IN ('BREAK_OUT', 'FIRST TIME OUT') THEN log_time END) as break_out"),
-
-                // 2nd In (Break In) - FIXED: Changed to MIN to get their first return log
+                // 2nd In (Break In)
                 DB::raw("MIN(CASE WHEN log_type IN ('BREAK_IN', 'SECOND TIME IN') THEN log_time END) as break_in"),
+                // 2nd Out (Final Out)
+                DB::raw("MAX(CASE WHEN log_type IN ('TIME_OUT', 'SECOND TIME OUT') THEN log_time END) as time_out"),
 
-                // 2nd Out (Final Out) - Last log of this type
-                DB::raw("MAX(CASE WHEN log_type IN ('TIME_OUT', 'SECOND TIME OUT') THEN log_time END) as time_out")
+                // --- TARGET RECORD PUNCH IDs (For Editing System) ---
+                DB::raw("MAX(CASE WHEN log_type IN ('TIME_IN', 'FIRST TIME IN') THEN attendance_logs.id END) as time_in_id"),
+                DB::raw("MAX(CASE WHEN log_type IN ('BREAK_OUT', 'FIRST TIME OUT') THEN attendance_logs.id END) as break_out_id"),
+                DB::raw("MAX(CASE WHEN log_type IN ('BREAK_IN', 'SECOND TIME IN') THEN attendance_logs.id END) as break_in_id"),
+                DB::raw("MAX(CASE WHEN log_type IN ('TIME_OUT', 'SECOND TIME OUT') THEN attendance_logs.id END) as time_out_id"),
+
+                // Fallback: This creates a unique identifier tag for the UI if needed
+                DB::raw("MAX(attendance_logs.id) as id")
             );
 
         /* --- FILTERS --- */
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+
+            $query->where(function ($q) use ($search) {
+                $q->where('employees.employee_id', 'like', "%{$search}%")
+                    ->orWhere('employees.first_name', 'like', "%{$search}%")
+                    ->orWhere('employees.last_name', 'like', "%{$search}%")
+                    ->orWhere(DB::raw("CONCAT(employees.first_name, ' ', employees.last_name)"), 'like', "%{$search}%");
+            });
+        }
+
         if ($request->employee_id) {
             $query->where('attendance_logs.employee_id', $request->employee_id);
         }

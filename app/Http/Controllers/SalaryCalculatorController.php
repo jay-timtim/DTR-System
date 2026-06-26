@@ -13,7 +13,7 @@ class SalaryCalculatorController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
-        // Get deduction rates
+        // We only fetch minute rates from deduction settings now
         $deductionSettings = DB::table('deduction_settings')->first() ?? (object)[
             'late_rate_per_minute' => 0.00,
             'undertime_rate_per_minute' => 0.00
@@ -31,7 +31,7 @@ class SalaryCalculatorController extends Controller
             $totalUndertimeMinutes = 0;
             $daysWorked = 0;
 
-            // Group raw log entries into daily records with MIN/MAX punches (matching your DTR view)
+            // Group raw log entries into daily records with MIN/MAX punches
             $dailyRecords = DB::table('attendance_logs')
                 ->where('employee_id', $employee->employee_id)
                 ->whereBetween('log_date', [$startDate, $endDate])
@@ -48,7 +48,7 @@ class SalaryCalculatorController extends Controller
             foreach ($dailyRecords as $record) {
                 $daysWorked++;
 
-                // Parse schedule thresholds safely (Matching your DTR Blade file exactly)
+                // Parse schedule thresholds safely
                 $sStart = $employee->schedule_start ? Carbon::parse($record->date . ' ' . $employee->schedule_start) : null;
                 $sBOut  = $employee->break_start ? Carbon::parse($record->date . ' ' . $employee->break_start) : null;
                 $sBIn   = $employee->break_end ? Carbon::parse($record->date . ' ' . $employee->break_end) : null;
@@ -61,54 +61,86 @@ class SalaryCalculatorController extends Controller
                 $t2Out = $record->time_out ? Carbon::parse($record->time_out) : null;
 
                 // --- 1. LATE CALCULATIONS ---
-                // Morning Shift Late: actual punch ($t1In) is GREATER than schedule ($sStart)
                 if ($t1In && $sStart && $t1In->gt($sStart)) {
-                    // Passing "true" as the second parameter forces a absolute positive integer
                     $totalLateMinutes += $sStart->diffInMinutes($t1In, true);
                 }
 
-                // Afternoon Shift Late: actual break return ($t2In) is GREATER than break end schedule ($sBIn)
                 if ($t2In && $sBIn && $t2In->gt($sBIn)) {
                     $totalLateMinutes += $sBIn->diffInMinutes($t2In, true);
                 }
 
                 // --- 2. UNDERTIME CALCULATIONS ---
-                // Morning Shift Early Exit: actual break out ($t1Out) is LESS than break start schedule ($sBOut)
                 if ($t1Out && $sBOut && $t1Out->lt($sBOut)) {
                     $totalUndertimeMinutes += $t1Out->diffInMinutes($sBOut, true);
                 }
 
-                // Afternoon Shift Early Exit: final clock out ($t2Out) is LESS than shift end schedule ($sEnd)
                 if ($t2Out && $sEnd && $t2Out->lt($sEnd)) {
                     $totalUndertimeMinutes += $t2Out->diffInMinutes($sEnd, true);
                 }
             }
 
-            // Calculations
+            // Time-based calculations
             $lateDeduction = $totalLateMinutes * $lateRate;
             $undertimeDeduction = $totalUndertimeMinutes * $undertimeRate;
-            $totalDeductions = $lateDeduction + $undertimeDeduction;
 
-            // Daily Rate structure
+            // --- FIXED: Read directly from Employee Profile Columns ---
+            $empPagibig    = $daysWorked > 0 ? ($employee->pagibig_deduction ?? 0.00) : 0;
+            $empSss        = $daysWorked > 0 ? ($employee->sss_deduction ?? 0.00) : 0;
+            $empPhilhealth = $daysWorked > 0 ? ($employee->philhealth_deduction ?? 0.00) : 0;
+            $empOthers     = $daysWorked > 0 ? ($employee->other_deductions ?? 0.00) : 0;
+
+            $totalDeductions = $lateDeduction + $undertimeDeduction + $empPagibig + $empSss + $empPhilhealth + $empOthers;
+
             $dailyRate = $employee->basic_salary;
             $grossEarned = $dailyRate * $daysWorked;
             $netPay = $grossEarned - $totalDeductions;
 
             $payrollData[] = [
-                'employee_id' => $employee->employee_id,
-                'name' => trim("{$employee->first_name} {$employee->last_name}"),
-                'basic_salary' => $employee->basic_salary,
-                'days_worked' => $daysWorked,
-                'gross_earned' => round($grossEarned, 2),
-                'late_minutes' => $totalLateMinutes,
-                'late_deduction' => round($lateDeduction, 2),
+                'employee_id'       => $employee->employee_id,
+                'name'              => trim("{$employee->first_name} {$employee->last_name}"),
+                'basic_salary'      => $employee->basic_salary,
+                'days_worked'       => $daysWorked,
+                'gross_earned'      => round($grossEarned, 2),
+                'late_minutes'      => $totalLateMinutes,
+                'late_deduction'    => round($lateDeduction, 2),
                 'undertime_minutes' => $totalUndertimeMinutes,
-                'undertime_deduction' => round($undertimeDeduction, 2),
-                'total_deductions' => round($totalDeductions, 2),
-                'net_pay' => round(max(0, $netPay), 2)
+                'undertime_deduction'=> round($undertimeDeduction, 2),
+
+                // Map employee specific values
+                'pagibig_deduction'   => round($empPagibig, 2),
+                'sss_deduction'       => round($empSss, 2),
+                'philhealth_deduction'=> round($empPhilhealth, 2),
+                'other_deductions'    => round($empOthers, 2),
+
+                'total_deductions'  => round($totalDeductions, 2),
+                'net_pay'           => round(max(0, $netPay), 2)
             ];
         }
 
         return view('admin.salary-calculator', compact('payrollData', 'startDate', 'endDate', 'lateRate', 'undertimeRate'));
+    }
+
+    // --- NEW: AJAX Inline Update Handler ---
+    public function updateInlineDeductions(Request $request)
+    {
+        $request->validate([
+            'employee_id'          => 'required|string',
+            'pagibig_deduction'    => 'required|numeric|min:0',
+            'sss_deduction'        => 'required|numeric|min:0',
+            'philhealth_deduction' => 'required|numeric|min:0',
+            'other_deductions'     => 'required|numeric|min:0',
+        ]);
+
+        DB::table('employees')
+            ->where('employee_id', $request->employee_id)
+            ->update([
+                'pagibig_deduction'    => $request->pagibig_deduction,
+                'sss_deduction'        => $request->sss_deduction,
+                'philhealth_deduction' => $request->philhealth_deduction,
+                'other_deductions'     => $request->other_deductions,
+                'updated_at'           => now()
+            ]);
+
+        return response()->json(['success' => true, 'message' => 'Deductions saved successfully']);
     }
 }

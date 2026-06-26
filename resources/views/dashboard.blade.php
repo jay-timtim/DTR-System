@@ -325,7 +325,7 @@
             <a href="/admin/salary-calculator" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-calculator" style="margin-right: 8px;"></i> Salary Calculator</a>
             <a href="/admin/deductions" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-percent" style="margin-right: 8px;"></i> Deduction Settings</a>
             <a href="/admin/settings" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-sliders-h" style="margin-right: 8px;"></i> System Settings</a>
-            <a href="/admin/settings#factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>
+            <a href="/admin/factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>
         </div>
     </div>
     <a style="margin-top: auto; color: #ff6b6b;" href="/logout"><i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Logout</a>
@@ -396,10 +396,17 @@
         <h3>Filter Log History</h3>
         <form method="GET" action="/admin">
             <div class="filter-group">
-                <input type="date" name="start_date">
+                <input type="date" name="start_date" value="{{ request('start_date') }}">
                 <span style="color: var(--text-muted);">to</span>
-                <input type="date" name="end_date">
+                <input type="date" name="end_date" value="{{ request('end_date') }}">
+
                 <button class="btn-filter" type="submit">Apply Filter</button>
+
+                @if(request()->filled(['start_date', 'end_date']))
+                    <a href="/admin" style="color: var(--danger-red); font-size: 13px; text-decoration: none; margin-left: 10px;">
+                        <i class="fas fa-times"></i> Clear Filter
+                    </a>
+                @endif
             </div>
         </form>
     </div>
@@ -429,8 +436,8 @@
                         <td style="font-weight: 500;">{{ $log->first_name }} {{ $log->last_name }}</td>
                         <td>{{ \Carbon\Carbon::parse($log->log_time)->format('M d, Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($log->log_time)->format('h:i A') }}</td>
-                        <td class="{{ strtolower($log->log_type) == 'time_in' ? 'status-timein' : 'status-timeout' }}">
-                            {{ str_replace('_', ' ', $log->log_type) }}
+                        <td class="{{ str_contains(strtolower($log->log_type), 'in') ? 'status-timein' : 'status-timeout' }}">
+                            {{ $log->log_type }}
                         </td>
                         <td style="color: var(--text-muted); font-family: monospace;">{{ $log->device_name }}</td>
                     </tr>

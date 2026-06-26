@@ -10,41 +10,21 @@
 
     <style>
         :root {
-            /* DEFAULT DARK MODE COLORS */
-            --bg-body: #080808;
-            --bg-container: #1a1a1a;
-            --bg-card: #222222;
-            --bg-input: #222;
-            --text-main: #f0f0f0;
-            --text-muted: #b0b0b0;
-            --logo-gold: #d4af37;
-            --accent-gold: #f5e0a0;
-            --dark-gold: #a67c00;
-            --text-gold: #ffd700;
-            --border-color: #333;
-            --row-hover: rgba(255, 255, 255, 0.02);
-            --gradient-color: rgba(255, 215, 0, 0.05);
+            --bg-body: #080808; --bg-container: #1a1a1a; --bg-card: #222222; --bg-input: #222;
+            --text-main: #f0f0f0; --text-muted: #b0b0b0; --logo-gold: #d4af37;
+            --accent-gold: #f5e0a0; --dark-gold: #a67c00; --text-gold: #ffd700;
+            --border-color: #333; --row-hover: rgba(255, 255, 255, 0.02); --gradient-color: rgba(255, 215, 0, 0.05);
         }
 
         body.light-mode {
-            --bg-body: #f4f6f9;
-            --bg-container: #ffffff;
-            --bg-card: #ffffff;
-            --bg-input: #f8f9fa;
-            --text-main: #212529;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
-            --row-hover: rgba(0, 0, 0, 0.03);
-            --gradient-color: rgba(212, 175, 55, 0.1);
-            --logo-gold: #a67c00;
-            --text-gold: #856404;
+            --bg-body: #f4f6f9; --bg-container: #ffffff; --bg-card: #ffffff; --bg-input: #f8f9fa;
+            --text-main: #212529; --text-muted: #6c757d; --border-color: #dee2e6;
+            --row-hover: rgba(0, 0, 0, 0.03); --gradient-color: rgba(212, 175, 55, 0.1);
+            --logo-gold: #a67c00; --text-gold: #856404;
         }
 
-        /* PRINT STYLES */
         @media print {
-            .sidebar, .topbar, .search-bar, .view-switcher, .actions, .modal, .theme-toggle-btn, .btn-add, .btn-export-group {
-                display: none !important;
-            }
+            .sidebar, .topbar, .search-bar, .view-switcher, .actions, .modal, .theme-toggle-btn, .btn-add, .btn-export-group { display: none !important; }
             .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
             .table-container { box-shadow: none !important; border: 1px solid #ccc !important; width: 100% !important; }
             body { background: white !important; color: black !important; }
@@ -54,7 +34,6 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
         body { display: flex; background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; transition: 0.3s; }
 
         .sidebar { width: 260px; height: 100vh; background: var(--bg-container); padding: 30px 20px; position: fixed; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 100; }
@@ -63,7 +42,6 @@
         .sidebar a:hover, .sidebar a.active { background: rgba(212, 175, 55, 0.1); color: var(--text-gold); }
 
         .main { margin-left: 260px; width: calc(100% - 260px); padding: 40px; }
-
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
 
         .view-switcher { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-container); padding: 5px; border-radius: 10px; width: fit-content; border: 1px solid var(--border-color); }
@@ -84,209 +62,28 @@
         tr:hover td { background: var(--row-hover); }
 
         .employee-photo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--dark-gold); }
+        .photo-placeholder { width: 45px; height: 45px; border-radius: 50%; background: var(--bg-input); display: flex; align-items: center; justify-content: center; border: 2px solid var(--border-color); color: var(--logo-gold); font-size: 18px; }
         .hidden { display: none; }
 
         .btn-add { background: var(--logo-gold); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 13px; }
         .btn-edit { background: rgba(212, 175, 55, 0.1); color: var(--text-gold); padding: 8px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--dark-gold); font-size: 12px; }
-        .btn-delete { background: rgba(231, 76, 60, 0.1); color: #ff6b6b; padding: 8px 12px; border-radius: 6px; border: 1px solid #962d22; cursor: pointer; font-size: 12px; }
 
-        .currency-symbol { position: absolute; left: 12px; color: var(--text-gold); font-weight: 600; pointer-events: none; }
-        .salary-input-wrapper { position: relative; display: flex; align-items: center; }
-
-        /* Modal Styles */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--bg-container); padding: 35px; border-radius: 15px; width: 600px; border-top: 5px solid var(--logo-gold); max-height: 90vh; overflow-y: auto; }
-        /* MODAL STYLING */
-
-        .modal {
-
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            background: rgba(0,0,0,0.85);
-
-            justify-content: center;
-
-            align-items: center;
-
-            z-index: 1000;
-
-            backdrop-filter: blur(5px);
-
-        }
-
-
-
-        .modal-content {
-
-            background: var(--bg-container);
-
-            padding: 35px;
-
-            border-radius: 15px;
-
-            width: 550px;
-
-            border-top: 5px solid var(--logo-gold);
-
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-
-            max-height: 90vh;
-
-            overflow-y: auto;
-
-        }
-
-
-
-        .modal-content h3 {
-
-            color: var(--text-gold);
-
-            margin-bottom: 20px;
-
-            text-transform: uppercase;
-
-        }
-
-
-
-        .form-group label {
-
-            display: block;
-
-            font-size: 12px;
-
-            color: var(--text-muted);
-
-            margin-bottom: 5px;
-
-            text-transform: uppercase;
-
-        }
-
-
-
-        .form-group input, .form-group select {
-
-            width: 100%;
-
-            padding: 12px;
-
-            border-radius: 6px;
-
-            background: var(--bg-input);
-
-            border: 1px solid var(--border-color);
-
-            color: var(--text-main);
-
-            outline: none;
-
-        }
-
-
-
-        .schedule-grid {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 15px;
-
-            background: var(--row-hover);
-
-            padding: 15px;
-
-            border-radius: 8px;
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        .modal-actions {
-
-            display: flex;
-
-            justify-content: flex-end;
-
-            gap: 12px;
-
-            margin-top: 25px;
-
-        }
-
-
-
-        .btn-save {
-
-            background: var(--logo-gold);
-
-            color: black;
-
-            border: none;
-
-            padding: 10px 25px;
-
-            border-radius: 6px;
-
-            font-weight: 700;
-
-            cursor: pointer;
-
-        }
-
-
-
-        .btn-cancel {
-
-            background: var(--border-color);
-
-            color: var(--text-main);
-
-            border: none;
-
-            padding: 10px 25px;
-
-            border-radius: 6px;
-
-            cursor: pointer;
-
-        }
-
-
-
-        .salary-input-wrapper {
-
-            position: relative;
-
-            display: flex;
-
-            align-items: center;
-
-        }
-
-
-
-        .currency-symbol {
-
-            position: absolute;
-
-            left: 12px;
-
-            color: var(--text-gold); /* Or your preferred color */
-
-            font-weight: 600;
-
-            pointer-events: none;
-
-        }
+        .modal-content { background: var(--bg-container); padding: 35px; border-radius: 15px; width: 550px; border-top: 5px solid var(--logo-gold); box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        .modal-content h3 { color: var(--text-gold); margin-bottom: 20px; text-transform: uppercase; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 6px; background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); outline: none; }
+
+        .schedule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: var(--row-hover); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
+        .btn-save { background: var(--logo-gold); color: black; border: none; padding: 10px 25px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { background: var(--border-color); color: var(--text-main); border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; }
+        .salary-input-wrapper { position: relative; display: flex; align-items: center; }
+        .currency-symbol { position: absolute; left: 12px; color: var(--text-gold); font-weight: 600; pointer-events: none; }
+
+        .alert-error { background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #ff6b6b; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -315,37 +112,12 @@
             <a href="/admin/salary-calculator" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-calculator" style="margin-right: 8px;"></i> Salary Calculator</a>
             <a href="/admin/deductions" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-percent" style="margin-right: 8px;"></i> Deduction Settings</a>
             <a href="/admin/settings" style="font-size: 13px; padding: 10px 15px;"><i class="fas fa-sliders-h" style="margin-right: 8px;"></i> System Settings</a>
-            <a href="/admin/settings#factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>
+            <a href="/admin/factory-reset" style="font-size: 13px; padding: 10px 15px; color: #ff6b6b;"><i class="fas fa-radiation" style="margin-right: 8px;"></i> Factory Reset</a>
         </div>
     </div>
     <a style="margin-top: auto; color: #ff6b6b;" href="/logout"><i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Logout</a>
 </div>
 
-<script>
-    function toggleSettingsMenu() {
-        const subMenu = document.getElementById('settingsSubMenu');
-        const chevron = document.getElementById('settingsChevron');
-
-        if (subMenu.style.display === "none" || subMenu.style.display === "") {
-            subMenu.style.display = "block";
-            chevron.style.transform = "rotate(180deg)";
-        } else {
-            subMenu.style.display = "none";
-            chevron.style.transform = "rotate(0deg)";
-        }
-    }
-
-    // Keep menu open automatically if we are currently visiting a settings sub-page
-    document.addEventListener("DOMContentLoaded", function() {
-        const currentUrl = window.location.pathname;
-        if (currentUrl.includes('/admin/change-password') ||
-            currentUrl.includes('/admin/salary-calculator') ||
-            currentUrl.includes('/admin/deductions') ||
-            currentUrl.includes('/admin/settings')) {
-            toggleSettingsMenu();
-        }
-    });
-</script>
 <div class="main">
     <div class="topbar">
         <h1>Employee Directory</h1>
@@ -358,6 +130,14 @@
         </div>
     </div>
 
+    @if ($errors->any())
+        <div class="alert-error">
+            @foreach ($errors->all() as $error)
+                <p><i class="fas fa-exclamation-triangle"></i> {{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
+
     <div class="view-switcher">
         <button class="view-btn active" onclick="switchTable('general')">General Information</button>
         <button class="view-btn" onclick="switchTable('schedule')">Work Schedules</button>
@@ -365,9 +145,14 @@
 
     <div class="search-bar">
         <input type="text" id="employeeSearch" placeholder="Filter current view...">
-        <div class="btn-export-group">
-            <button class="btn-export" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
-            <button class="btn-export" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Print PDF</button>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+            <a href="{{ route('employees.id-generator') }}" class="btn-export" style="border-color: var(--logo-gold); color: var(--text-gold); text-decoration: none;">
+                <i class="fa-solid fa-id-card"></i> ID Badge Generator
+            </a>
+            <div class="btn-export-group">
+                <button class="btn-export" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                <button class="btn-export" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Print PDF</button>
+            </div>
         </div>
     </div>
 
@@ -388,7 +173,15 @@
             <tbody class="employee-tbody">
             @foreach($employees as $employee)
                 <tr>
-                    <td><img src="{{ $employee->photo_path ? asset('storage/'.$employee->photo_path) : 'https://i.pravatar.cc/40?img='.$loop->index }}" class="employee-photo"></td>
+                    <td>
+                        @if(!empty($employee->photo_path))
+                            <img src="{{ asset('storage/'.$employee->photo_path) }}" class="employee-photo">
+                        @else
+                            <div class="photo-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        @endif
+                    </td>
                     <td style="font-family: monospace; color: var(--accent-gold);">{{ $employee->employee_id }}</td>
                     <td style="font-weight: 600;">{{ $employee->first_name }} {{ $employee->last_name }}</td>
                     <td>{{ $employee->department }}</td>
@@ -396,9 +189,7 @@
                     <td style="color: var(--text-gold);">₱{{ number_format($employee->basic_salary, 2) }}</td>
                     <td><span style="color: {{ $employee->employment_status == 'Regular' ? '#2ecc71' : '#f1c40f' }}">{{ $employee->employment_status }}</span></td>
                     <td class="actions">
-                        <div class="actions">
-                            <a href="{{ route('employees.edit',$employee->employee_id) }}" class="btn-edit">Edit</a>
-                        </div>
+                        <a href="{{ route('employees.edit',$employee->employee_id) }}" class="btn-edit">Edit</a>
                     </td>
                 </tr>
             @endforeach
@@ -424,9 +215,15 @@
                 <tr>
                     <td style="font-family: monospace; color: var(--accent-gold);">{{ $employee->employee_id }}</td>
                     <td style="font-weight: 600;">{{ $employee->first_name }} {{ $employee->last_name }}</td>
-                    <td style="color: #2ecc71;">{{ \Carbon\Carbon::parse($employee->schedule_start)->format('h:i A') }}</td>
-                    <td style="color: var(--text-muted);">{{ \Carbon\Carbon::parse($employee->break_start)->format('h:i A') }} - {{ \Carbon\Carbon::parse($employee->break_end)->format('h:i A') }}</td>
-                    <td style="color: #ff6b6b;">{{ \Carbon\Carbon::parse($employee->schedule_end)->format('h:i A') }}</td>
+                    <td style="color: #2ecc71;">{{ $employee->schedule_start ? \Carbon\Carbon::parse($employee->schedule_start)->format('h:i A') : 'N/A' }}</td>
+                    <td style="color: var(--text-muted);">
+                        @if($employee->break_start && $employee->break_end)
+                            {{ \Carbon\Carbon::parse($employee->break_start)->format('h:i A') }} - {{ \Carbon\Carbon::parse($employee->break_end)->format('h:i A') }}
+                        @else
+                            No Break
+                        @endif
+                    </td>
+                    <td style="color: #ff6b6b;">{{ $employee->schedule_end ? \Carbon\Carbon::parse($employee->schedule_end)->format('h:i A') : 'N/A' }}</td>
                     <td>{{ $employee->department }}</td>
                     <td class="actions">
                         <a href="{{ route('employees.edit',$employee->employee_id) }}" class="btn-edit">Edit</a>
@@ -438,179 +235,116 @@
     </div>
 </div>
 
-<!-- Modal remains mostly the same, but inherits CSS Variable improvements -->
-
 <div class="modal" id="employeeModal">
-
     <form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
-
         @csrf
-
         <div class="modal-content">
-
             <h3>Register New Employee</h3>
 
-
-
             <div class="form-group">
-
-                <label>Employee ID Assignment</label>
-
-                <div style="font-weight:800; font-size:18px; color:var(--text-gold); padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;" id="generatedEmployeeId">
-
-                    AUTO-GENERATED
-
-                </div>
-
+                <label for="employee_id">Assign Employee ID</label>
+                <input type="text" id="employee_id" name="employee_id" placeholder="e.g. BMT-2026-001" style="font-weight: 600; text-transform: uppercase;" value="{{ old('employee_id') }}" required>
             </div>
-
-
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-
                 <div class="form-group"><label>First Name</label><input type="text" name="first_name" required></div>
-
                 <div class="form-group"><label>Middle Name</label><input type="text" name="middle_name" placeholder="Optional"></div>
-
                 <div class="form-group"><label>Last Name</label><input type="text" name="last_name" required></div>
-
             </div>
 
-
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-
+                <div class="form-group"><label>Birthday</label><input type="date" name="birthday" required></div>
                 <div class="form-group">
-
-                    <label>Birthday</label>
-
-                    <input type="date" name="birthday" required>
-
-                </div>
-
-                <div class="form-group">
-
                     <label>Gender</label>
-
                     <select name="gender" required>
-
                         <option value="Male">Male</option>
-
                         <option value="Female">Female</option>
-
                     </select>
-
                 </div>
-
             </div>
 
-
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-
-                <div class="form-group">
-
-                    <label>Department</label>
-
-                    <input type="text" name="department" placeholder="e.g. IT Department" required>
-
-                </div>
-
-                <div class="form-group">
-
-                    <label>Position</label>
-
-                    <input type="text" name="position" placeholder="e.g. Software Engineer" required>
-
-                </div>
-
+                <div class="form-group"><label>Department</label><input type="text" name="department" placeholder="e.g. HR Department" required></div>
+                <div class="form-group"><label>Position</label><input type="text" name="position" placeholder="e.g. Manager" required></div>
             </div>
 
-
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-
+                <div class="form-group"><label>Date Hired</label><input type="date" name="date_hired" id="datePicker" required></div>
                 <div class="form-group">
-
-                    <label>Date Hired</label>
-
-                    <input type="date" name="date_hired" id="datePicker" required>
-
-                </div>
-
-                <div class="form-group">
-
                     <label>Basic Salary</label>
-
                     <div class="salary-input-wrapper">
-
                         <span class="currency-symbol">₱</span>
-
                         <input type="number" name="basic_salary" step="0.01" placeholder="0.00" style="padding-left: 30px;" required>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="form-group">
-
                 <label>Employment Status</label>
-
                 <select name="employment_status">
-
                     <option value="Regular">Regular</option>
-
                     <option value="Probationary">Probationary</option>
-
                     <option value="Contractual">Contractual</option>
-
                 </select>
-
             </div>
-
-
 
             <div class="form-group"><label>Home Address</label><input type="text" name="address" required></div>
 
-
+            <h4 style="color: var(--logo-gold); font-size: 13px; margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.5px;">Monthly Deductions</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>SSS Premium</label>
+                    <div class="salary-input-wrapper" style="position: relative;">
+                        <span class="currency-symbol" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">₱</span>
+                        <input type="number" name="sss_deduction" step="0.01" placeholder="0.00" style="padding-left: 30px; width: 100%;" value="0.00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Pag-IBIG Fund</label>
+                    <div class="salary-input-wrapper" style="position: relative;">
+                        <span class="currency-symbol" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">₱</span>
+                        <input type="number" name="pagibig_deduction" step="0.01" placeholder="0.00" style="padding-left: 30px; width: 100%;" value="0.00" required>
+                    </div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>PhilHealth Premium</label>
+                    <div class="salary-input-wrapper" style="position: relative;">
+                        <span class="currency-symbol" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">₱</span>
+                        <input type="number" name="philhealth_deduction" step="0.01" placeholder="0.00" style="padding-left: 30px; width: 100%;" value="0.00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Other Miscellaneous Deductions</label>
+                    <div class="salary-input-wrapper" style="position: relative;">
+                        <span class="currency-symbol" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">₱</span>
+                        <input type="number" name="other_deductions" step="0.01" placeholder="0.00" style="padding-left: 30px; width: 100%;" value="0.00" required>
+                    </div>
+                </div>
+            </div>
 
             <h4 style="color: var(--logo-gold); font-size: 13px; margin: 20px 0 10px; text-transform: uppercase;">Work Schedule</h4>
-
             <div class="schedule-grid">
-
                 <div class="form-group"><label>Start</label><input type="time" name="schedule_start"></div>
-
                 <div class="form-group"><label>End</label><input type="time" name="schedule_end"></div>
-
                 <div class="form-group"><label>Break Start</label><input type="time" name="break_start"></div>
-
                 <div class="form-group"><label>Break End</label><input type="time" name="break_end"></div>
-
             </div>
 
-
-
-            <div class="form-group"><label>Profile Picture</label><input type="file" name="photo_path"></div>
-
-
+            <div class="form-group">
+                <label>Profile Picture</label>
+                <input type="file" name="photo_path" accept="image/*">
+            </div>
 
             <div class="modal-actions">
-
                 <button type="button" class="btn-cancel" onclick="closeModal()">Dismiss</button>
-
                 <button type="submit" class="btn-save">Confirm Registration</button>
-
             </div>
-
         </div>
-
     </form>
-
 </div>
+
 <script>
     let activeTableId = 'generalTable';
 
@@ -634,7 +368,6 @@
         }
     }
 
-    // Dynamic Search Filter for both tables
     document.getElementById("employeeSearch").addEventListener("keyup", function () {
         let searchValue = this.value.toLowerCase();
         document.querySelectorAll(".employee-tbody tr").forEach(row => {
@@ -642,7 +375,6 @@
         });
     });
 
-    // Excel Export Logic (Exports only the visible table)
     function exportToExcel() {
         const table = document.getElementById(activeTableId);
         let csv = [];
@@ -651,9 +383,7 @@
         for (let i = 0; i < rows.length; i++) {
             let row = [], cols = rows[i].querySelectorAll("td, th");
             for (let j = 0; j < cols.length; j++) {
-                // Exclude the Actions column from export
                 if (cols[j].classList.contains('actions')) continue;
-
                 let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").replace(/,/g, ";");
                 row.push(data);
             }
@@ -670,15 +400,12 @@
         document.body.removeChild(link);
     }
 
-    // Theme Logic
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const themeText = document.getElementById('theme-text');
     const body = document.body;
 
-    // Check localStorage for preference on load
-    const currentTheme = localStorage.getItem('theme');
-    if (currentTheme === 'light') {
+    if (localStorage.getItem('theme') === 'light') {
         body.classList.add('light-mode');
         themeIcon.innerText = '🌙';
         themeText.innerText = 'Dark Mode';
@@ -686,7 +413,6 @@
 
     themeToggle.addEventListener('click', () => {
         body.classList.toggle('light-mode');
-
         if (body.classList.contains('light-mode')) {
             localStorage.setItem('theme', 'light');
             themeIcon.innerText = '🌙';
@@ -698,22 +424,40 @@
         }
     });
 
+    function toggleSettingsMenu() {
+        const subMenu = document.getElementById('settingsSubMenu');
+        const chevron = document.getElementById('settingsChevron');
+        if (subMenu.style.display === "none" || subMenu.style.display === "") {
+            subMenu.style.display = "block";
+            chevron.style.transform = "rotate(180deg)";
+        } else {
+            subMenu.style.display = "none";
+            chevron.style.transform = "rotate(0deg)";
+        }
+    }
+
     function openModal() { document.getElementById('employeeModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('employeeModal').style.display = 'none'; }
 
     document.addEventListener('DOMContentLoaded', function() {
-
-// Set default date to today
-
         const dateInput = document.getElementById('datePicker');
+        if(dateInput && !dateInput.value) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
 
-        const today = new Date().toISOString().split('T')[0];
+        const currentUrl = window.location.pathname;
+        if (currentUrl.includes('/admin/change-password') ||
+            currentUrl.includes('/admin/salary-calculator') ||
+            currentUrl.includes('/admin/deductions') ||
+            currentUrl.includes('/admin/settings')) {
+            toggleSettingsMenu();
+        }
 
-        dateInput.value = today;
-
+        // Keep modal open on screen if validation fails after form submit
+        @if($errors->any())
+        openModal();
+        @endif
     });
-
 </script>
-
 </body>
 </html>

@@ -26,6 +26,10 @@ class Employee extends Model
         'break_end',
         'schedule_end',
         'photo_path',
-        'status'
+        'status',
+        'sss_deduction',
+        'pagibig_deduction',
+        'philhealth_deduction',
+        'other_deductions'
     ];
 }

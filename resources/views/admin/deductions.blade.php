@@ -40,15 +40,22 @@
         <a href="/admin" class="btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
         <button type="button" class="theme-toggle-btn" onclick="toggleTheme()"><i class="fas fa-sun" id="themeIcon"></i></button>
     </div>
+
     <div class="header">
         <h1><i class="fas fa-percent"></i> Deduction Settings</h1>
-        <p>Set monetary penalties applied per minute of tardiness or early exit</p>
+        <p>Configure operational and fixed statutory payroll deduction parameters</p>
     </div>
+
     @if(session('success'))
         <div class="alert-success">{{ session('success') }}</div>
     @endif
+
     <form action="{{ route('admin.deductions.update') }}" method="POST">
         @csrf
+
+        <!-- TIME-BASED OPERATIONAL PENALTIES -->
+        <h3 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; letter-spacing: 0.5px;">Time-Based Penalties</h3>
+
         <div class="form-group">
             <label for="late_rate_per_minute">Late Fee (Per Minute)</label>
             <div class="input-group">
@@ -56,6 +63,7 @@
                 <input type="number" step="0.01" id="late_rate_per_minute" name="late_rate_per_minute" value="{{ old('late_rate_per_minute', $settings->late_rate_per_minute) }}" required>
             </div>
         </div>
+
         <div class="form-group">
             <label for="undertime_rate_per_minute">Undertime Fee (Per Minute)</label>
             <div class="input-group">
@@ -63,9 +71,13 @@
                 <input type="number" step="0.01" id="undertime_rate_per_minute" name="undertime_rate_per_minute" value="{{ old('undertime_rate_per_minute', $settings->undertime_rate_per_minute) }}" required>
             </div>
         </div>
-        <button type="submit" class="btn-submit">Save Deduction Configurations</button>
+
+
+
+        <button type="submit" class="btn-submit" style="margin-top: 15px;">Save Deduction Configurations</button>
     </form>
 </div>
+
 <script>
     function toggleTheme() {
         const body = document.body; const icon = document.getElementById('themeIcon');

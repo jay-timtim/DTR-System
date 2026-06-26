@@ -48,6 +48,12 @@
         }
 
         /* --- PRINT STYLES (PDF READY) --- */
+        /* --- PRINT STYLES (PDF READY) --- */
+
+        @media print {
+            .export-group-ignore { display: none !important; }
+        }
+
         @media print {
             @page { size: landscape; margin: 1cm; }
             body { background: white !important; color: black !important; background-image: none !important; }
@@ -60,10 +66,21 @@
             .actual-time { color: black !important; font-weight: bold !important; }
             .sched-time { color: #555 !important; font-size: 8pt !important; }
             .status-badge { border: 1px solid #000 !important; color: black !important; background: transparent !important; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
-            .print-header h1 { font-size: 20pt; color: black; margin-bottom: 5px; }
+
+            /* Updated layout for printing layout safely */
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: flex-end;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+            .print-header h1 { font-size: 20pt; color: black; margin: 0 0 5px 0; }
+            .print-header p { margin: 0; }
+            .print-header .text-right { text-align: right; }
         }
 
+        /* Hides it completely on the web UI browser screen */
         .print-header { display: none; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -290,9 +307,13 @@
 
 <div class="main">
     <div class="print-header">
-        <h1>BIZMATECH PHILIPPINES</h1>
-        <p>Daily Time Record - Detailed Attendance Logs</p>
-        <p>Date Generated: {{ date('M d, Y h:i A') }}</p>
+        <div>
+            <h1> {{config('app_settings.company_name', 'Company Name')}} </h1>
+            <p>Daily Time Record - Detailed Attendance Logs</p>
+        </div>
+        <div class="text-right">
+            <p>Date Generated: {{ date('M d, Y h:i A') }}</p>
+        </div>
     </div>
 
     <div class="topbar">
@@ -345,6 +366,7 @@
                 <th colspan="3" style="text-align: center; border-bottom: 1px solid var(--border-color); background: rgba(212, 175, 55, 0.1);">Second Half (Afternoon)</th>
                 <th colspan="3" style="text-align: center; border-bottom: 1px solid var(--border-color); background: rgba(212, 175, 55, 0.1);">Final Out</th>
                 <th rowspan="2">Total Hours</th>
+                <th rowspan="2" style="text-align: center;">Actions</th>
             </tr>
             <tr>
                 <th style="font-size: 9px;">1st In <br><small>(Actual)</small></th>
@@ -365,12 +387,11 @@
             <tbody>
             @if($records->isEmpty())
                 <tr>
-                    <td colspan="16" style="text-align:center; padding:50px; color:var(--text-muted);">No records found.</td>
+                    <td colspan="17" style="text-align:center; padding:50px; color:var(--text-muted);">No records found.</td>
                 </tr>
             @else
                 @foreach($records as $record)
                     @php
-                        // Create full datetime formats or use a fallback if schedules are missing
                         $sStart = $record->schedule_start ? \Carbon\Carbon::parse($record->date . ' ' . $record->schedule_start) : null;
                         $sBOut  = $record->break_start ? \Carbon\Carbon::parse($record->date . ' ' . $record->break_start) : null;
                         $sBIn   = $record->break_end ? \Carbon\Carbon::parse($record->date . ' ' . $record->break_end) : null;
@@ -381,33 +402,29 @@
                         $t2In  = $record->break_in ? \Carbon\Carbon::parse($record->break_in) : null;
                         $t2Out = $record->time_out ? \Carbon\Carbon::parse($record->time_out) : null;
 
-                        // --- COUNTED LOGIC & REMARKS ---
+                        // Check if day is complete (all 4 punches must exist)
+                        $isIncomplete = (!$t1In || !$t1Out || !$t2In || !$t2Out);
 
-                        // 1st In (Late check)
                         $c1In = ($t1In && $sStart && $t1In->gt($sStart)) ? $t1In : (($t1In && $sStart) ? $sStart : null);
                         $rem1In = ($t1In && $sStart && $t1In->gt($sStart)) ? 'LATE' : '✓';
 
-                        // 1st Out (Undertime check)
                         $c1Out = ($t1Out && $sBOut && $t1Out->lt($sBOut)) ? $t1Out : (($t1Out && $sBOut) ? $sBOut : null);
                         $rem1Out = ($t1Out && $sBOut && $t1Out->lt($sBOut)) ? 'UNDERTIME' : '✓';
 
-                        // 2nd In (Late Break return check)
                         $c2In = ($t2In && $sBIn && $t2In->gt($sBIn)) ? $t2In : (($t2In && $sBIn) ? $sBIn : null);
                         $rem2In = ($t2In && $sBIn && $t2In->gt($sBIn)) ? 'LATE (BRK)' : '✓';
 
-                        // 2nd Out (Undertime Shift End check)
                         $c2Out = ($t2Out && $sEnd && $t2Out->lt($sEnd)) ? $t2Out : (($t2Out && $sEnd) ? $sEnd : null);
                         $rem2Out = ($t2Out && $sEnd && $t2Out->lt($sEnd)) ? 'UNDERTIME' : '✓';
 
-                        // --- TOTAL HOURS ---
                         $diff1 = ($c1In && $c1Out) ? $c1In->diffInMinutes($c1Out) : 0;
                         $diff2 = ($c2In && $c2Out) ? $c2In->diffInMinutes($c2Out) : 0;
                         $totalMinutes = $diff1 + $diff2;
 
-                        $hours = floor($totalMinutes / 60);
-                        $mins = $totalMinutes % 60;
+                        $hours = floor(max(0, $totalMinutes) / 60);
+                        $mins = max(0, $totalMinutes) % 60;
                     @endphp
-                    <tr>
+                    <tr style="{{ $isIncomplete ? 'background: rgba(231, 76, 60, 0.04); border-left: 3px solid #e74c3c;' : '' }}">
                         <td style="color: var(--text-muted); font-size: 11px;">{{ $record->employee_id }}</td>
                         <td style="font-weight: 600; font-size: 12px;">{{ $record->first_name }} {{ $record->last_name }}</td>
                         <td style="font-size: 11px;">{{ \Carbon\Carbon::parse($record->date)->format('m/d/y') }}</td>
@@ -431,6 +448,22 @@
                         <td style="background: rgba(212, 175, 55, 0.05); font-family: monospace; font-weight: 800; text-align: center; font-size: 13px;">
                             {{ $hours }}h {{ $mins }}m
                         </td>
+
+                        <td style="text-align: center;" class="export-group-ignore">
+                            <button class="btn-filter" style="padding: 6px 12px; font-size: 11px;"
+                                    onclick="openEditModal({
+                                        id: '{{ $record->id }}',
+                                        employee_id: '{{ $record->employee_id }}',
+                                        name: '{{ $record->first_name }} {{ $record->last_name }}',
+                                        date: '{{ $record->date }}',
+                                        t1_in: '{{ $t1In ? $t1In->format('H:i') : '' }}',
+                                        t1_out: '{{ $t1Out ? $t1Out->format('H:i') : '' }}',
+                                        t2_in: '{{ $t2In ? $t2In->format('H:i') : '' }}',
+                                        t2_out: '{{ $t2Out ? $t2Out->format('H:i') : '' }}'
+                                    })">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
                     </tr>
                 @endforeach
             @endif
@@ -438,6 +471,46 @@
         </table>
     </div>
 </div>
+
+<div id="editLogModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: var(--bg-container); width: 100%; max-width: 450px; padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <h3 style="color: var(--text-gold); margin-bottom: 5px; font-size: 18px;"><i class="fas fa-user-edit"></i> Adjust Attendance Times</h3>
+        <p id="modalSubTitle" style="color: var(--text-muted); font-size: 12px; margin-bottom: 20px;"></p>
+
+        <form id="editLogForm" method="POST" action="/admin/dtr/update">
+            @csrf
+            <input type="hidden" name="employee_id" id="modalEmployeeId">
+
+            <input type="hidden" name="record_id" id="modalRecordId">
+            <input type="hidden" name="record_date" id="modalRecordDate">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display:block; margin-bottom:5px;">1st In (Morning)</label>
+                    <input type="time" name="time_in" id="inputTimeIn" style="width:100%; padding:10px; background:var(--bg-input); border:1px solid var(--border-color); color:var(--text-primary); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display:block; margin-bottom:5px;">1st Out (Break)</label>
+                    <input type="time" name="break_out" id="inputBreakOut" style="width:100%; padding:10px; background:var(--bg-input); border:1px solid var(--border-color); color:var(--text-primary); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display:block; margin-bottom:5px;">2nd In (Return)</label>
+                    <input type="time" name="break_in" id="inputBreakIn" style="width:100%; padding:10px; background:var(--bg-input); border:1px solid var(--border-color); color:var(--text-primary); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: var(--text-muted); display:block; margin-bottom:5px;">2nd Out (End Shift)</label>
+                    <input type="time" name="time_out" id="inputTimeOut" style="width:100%; padding:10px; background:var(--bg-input); border:1px solid var(--border-color); color:var(--text-primary); border-radius:6px;">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-export" style="background:#444; color:#fff;" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-filter" style="border-radius:6px;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
     function updateDateRange() {
@@ -532,6 +605,32 @@
     function exportToPDF() {
         window.print();
     }
+
+    // --- ADJUSTMENT MODAL CONTROLLERS ---
+    function openEditModal(data) {
+        document.getElementById('modalRecordId').value = data.id;
+        document.getElementById('modalRecordDate').value = data.date;
+
+        // Add this line so JavaScript maps the employee ID parameter to the input field frame
+        document.getElementById('modalEmployeeId').value = data.employee_id;
+
+        document.getElementById('modalSubTitle').innerText = `${data.name} — ${data.date}`;
+
+        document.getElementById('inputTimeIn').value = data.t1_in;
+        document.getElementById('inputTimeOut').value = data.t2_out;
+        document.getElementById('inputBreakIn').value = data.t2_in;
+        document.getElementById('inputBreakOut').value = data.t1_out;
+
+        document.getElementById('editLogModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editLogModal').style.display = 'none';
+    }
+
+
+
 </script>
+
 </body>
 </html>
